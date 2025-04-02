@@ -1,15 +1,4 @@
 # Home Assistant Actionable Notifications
-
-Include as a package in your configuration file.
-example:
-
-homeassistant:
-  packages:
-    notify: !include custom_components/notify.yaml
-
-
-
-# Home Assistant Actionable Notifications
 This script provides a flexible system for sending actionable notifications to users through Home Assistant. It allows you to send customized notifications with interactive buttons that can trigger different actions when pressed.
 ## Features
 
@@ -76,49 +65,49 @@ data:
 The script supports numerous parameters that let you customize the notification experience:
 ### Recipients
 
-* who: Recipient selection - user name or 'all' (default: 'all')
+* ```who```: Recipient selection - user name or 'all' (default: 'all')
 
 ### Notification Content
 
-* title: Notification title
-* message: Notification message content
-* url: URL to open when notification is tapped (optional)
+* ```title```: Notification title
+* ```message```: Notification message content
+* ```url```: URL to open when notification is tapped (optional)
 
 ### Action Buttons
 
-* show_confirm: Show confirm button - 'true' or 'false' (default: false)
-* show_dismiss: Show dismiss button - 'true' or 'false' (default: false)
-* show_snooze: Show snooze button - 'true' or 'false' (default: false)
-* confirm_text: Text for confirm button (default: 'Yes')
-* dismiss_text: Text for dismiss button (default: 'No')
-* snooze_text: Text for snooze button (default: 'Snooze')
+* ```show_confirm```: Show confirm button - 'true' or 'false' (default: false)
+* ```show_dismiss```: Show dismiss button - 'true' or 'false' (default: false)
+* ```show_snooze```: Show snooze button - 'true' or 'false' (default: false)
+* ```confirm_text```: Text for confirm button (default: 'Yes')
+* ```dismiss_text```: Text for dismiss button (default: 'No')
+* ```snooze_text```: Text for snooze button (default: 'Snooze')
 
 ### Button Actions
 
-* action_confirm_action: Service to call when 'confirm' is tapped
-* action_confirm_entity_id: Entity ID for confirm action
-* action_dismiss_action: Service to call when 'dismiss' is tapped
-* action_dismiss_entity_id: Entity ID for dismiss action
-* action_snooze_action: Service to call when 'snooze' is tapped
-* action_snooze_entity_id: Entity ID for snooze action
+* ```action_confirm_action```: Service to call when 'confirm' is tapped
+* ```action_confirm_entity_id```: Entity ID for confirm action
+* ```action_dismiss_action```: Service to call when 'dismiss' is tapped
+* ```action_dismiss_entity_id```: Entity ID for dismiss action
+* ```action_snooze_action```: Service to call when 'snooze' is tapped
+* ```action_snooze_entity_id```: Entity ID for snooze action
 
 ### Timeout Settings
 
-* timeout_minutes: Minutes to wait for response (default: 5)
-* enable_timeout: Enable timeout - 'true' or 'false' (default: true)
-* timeout_action: Service to call on timeout
-* timeout_entity_id: Entity ID for timeout action
+* ```timeout_minutes```: Minutes to wait for response (default: 5)
+* ```enable_timeout```: Enable timeout - 'true' or 'false' (default: true)
+* ```timeout_action```: Service to call on timeout
+* ```timeout_entity_id```: Entity ID for timeout action
 
 ### Resend Settings
 
-* resend_count: Number of times to resend after timeout (default: 0)
-* resend_interval: Minutes between resends (default: 2)
+* ```resend_count```: Number of times to resend after timeout (default: 0)
+* ```resend_interval```: Minutes between resends (default: 2)
 
 ### Additional Options
 
-* group: Notification group identifier (default: 'actionable_notify')
-* image: URL to an image (optional)
-* entity_id: Entity ID to attach (optional)
+* ```group```: Notification group identifier (default: 'actionable_notify')
+* ```image```: URL to an image (optional)
+* ```entity_id```: Entity ID to attach (optional)
 
 ## Compatibility
 This script works with the official Home Assistant Companion App for iOS and Android.
