@@ -511,29 +511,29 @@ script:
 # Example 1: Front door alert
 # service: script.actionable_notify
 # data:
-#   title: "Front Door Alert"
-#   message: "Someone is at the front door. Unlock the door?"
+#   title: Front Door Alert
+#   message: Someone is at the front door. Unlock the door?
 #   show_confirm: true
 #   show_dismiss: true
-#   confirm_text: "Unlock"
-#   dismiss_text: "Ignore"
-#   action_confirm_action: "lock.unlock"
-#   action_confirm_entity_id: "lock.front_door"
+#   confirm_text: Unlock
+#   dismiss_text: Ignore
+#   action_confirm_action: lock.unlock
+#   action_confirm_entity_id: lock.front_door
 #
 # Example 2: Water leak with automatic fallback
 # service: script.actionable_notify
 # data:
-#   who: "all"
-#   title: "Water Leak Detected!"
-#   message: "Water leak detected in the basement. Turn off water main?"
+#   who: all
+#   title: Water Leak Detected!
+#   message: Water leak detected in the basement. Turn off water main?
 #   show_confirm: true
 #   show_dismiss: true
-#   confirm_text: "Turn Off Water"
-#   dismiss_text: "Ignore"
-#   action_confirm_action: "switch.turn_on"
-#   action_confirm_entity_id: "switch.water_shutoff_valve"
+#   confirm_text: Turn Off Water
+#   dismiss_text: Ignore
+#   action_confirm_action: switch.turn_on
+#   action_confirm_entity_id: switch.water_shutoff_valve
 #   timeout_minutes: 3
-#   timeout_action: "switch.turn_on"
-#   timeout_entity_id: "switch.water_shutoff_valve"
+#   timeout_action: switch.turn_on
+#   timeout_entity_id: switch.water_shutoff_valve
 #   resend_count: 2
 #   resend_interval: 1
