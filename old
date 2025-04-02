@@ -1,0 +1,400 @@
+##############################################################################
+# Actionable Notification Script Inputs
+##############################################################################
+#
+# RECIPIENTS
+# ----------
+# who: Recipient selection - 'joakim', 'caroline', or 'all' (default: 'all')
+#
+# NOTIFICATION CONTENT
+# -------------------
+# title: Notification title (default: 'Title')
+# message: Notification message content (default: 'Message')
+# url: URL to open when notification is tapped (optional)
+#
+# ACTION CONTROLS
+# --------------
+# show_confirm: Enable the confirm/yes action - 'true' or 'false' (default: false)
+# show_dismiss: Enable the dismiss/no action - 'true' or 'false' (default: false)
+# show_snooze: Enable the snooze action - 'true' or 'false' (default: false)
+# confirm_text: Text for confirm button (default: 'Yes')
+# dismiss_text: Text for dismiss button (default: 'No')
+# snooze_text: Text for snooze button (default: 'Snooze')
+#
+# ACTION SERVICES
+# --------------
+# action_confirm_action: Service to call when 'confirm' is tapped (default: 'script.no_action')
+# action_confirm_entity_id: Entity ID to target for confirm action (default: 'input_boolean.default')
+# action_dismiss_action: Service to call when 'dismiss' is tapped (default: 'script.no_action')
+# action_dismiss_entity_id: Entity ID to target for dismiss action (default: 'input_boolean.default')
+# action_snooze_action: Service to call when 'snooze' is tapped (default: 'script.no_action')
+# action_snooze_entity_id: Entity ID to target for snooze action (default: 'input_boolean.default')
+#
+# TIMEOUT SETTINGS
+# --------------
+# timeout_minutes_value: Number of minutes to wait for a response (default: 5)
+# enable_timeout: Enable timeout functionality - 'true' or 'false' (default: true)
+# timeout_fallback_action: Service to call on timeout (default: 'script.no_action')
+# timeout_fallback_entity_id: Entity ID to target for timeout action (default: 'input_boolean.default')
+#
+# RESEND SETTINGS
+# --------------
+# resend_attempts: Number of times to resend notification after timeout (default: 0)
+# resend_interval: Minutes between resend attempts (default: 2)
+#
+# CUSTOM MESSAGES
+# --------------
+# action_taken_title: Title for notification when someone else takes action (default: 'Action Taken')
+# action_taken_message: Message when someone else takes action (default: 'Another user has already taken action.')
+# fallback_action_title: Title for timeout notification (default: 'Fallback Action Performed')
+# fallback_action_message: Message for timeout notification (default: 'No response received. Fallback action was performed.')
+#
+# GROUPING AND ATTACHMENTS
+# -----------------------
+# group: Notification group identifier (default: 'actionable_notify')
+# image: URL to an image to include (optional)
+# entity_id: Entity ID to attach to the notification (optional)
+#
+##############################################################################
+# USAGE EXAMPLES
+##############################################################################
+# Example 1: Basic notification with confirm/dismiss
+# service: script.actionable_notify
+# data:
+#   title: "Front Door Alert"
+#   message: "Someone is at the front door. Unlock the door?"
+#   show_confirm: "true"
+#   show_dismiss: "true"
+#   action_confirm_action: "lock.unlock"
+#   action_confirm_entity_id: "lock.front_door"
+#
+# Example 2: Water leak with timeout fallback action
+# service: script.actionable_notify
+# data:
+#   who: "all"
+#   title: "Water Leak Detected!"
+#   message: "Water leak detected in the basement. Turn off water main?"
+#   show_confirm: "true"
+#   show_dismiss: "true"
+#   confirm_text: "Turn Off Water"
+#   dismiss_text: "Ignore"
+#   action_confirm_action: "switch.turn_on"
+#   action_confirm_entity_id: "switch.water_shutoff_valve"
+#   timeout_minutes_value: 3
+#   timeout_fallback_action: "switch.turn_on"
+#   timeout_fallback_entity_id: "switch.water_shutoff_valve"
+##############################################################################
+
+template:
+  - sensor:
+      - name: "Notify Joakim"
+        state: "{{ state_attr('person.joakim_aven','source').replace('device_tracker.','notify.mobile_app_') }}"
+
+  - sensor:
+      - name: "Notify Caroline"
+        state: "{{ state_attr('person.caroline','source').replace('device_tracker.','notify.mobile_app_') }}"
+
+script:
+  actionable_notify:
+    alias: "Actionable Notification Script"
+    mode: parallel
+    sequence:
+      - alias: "Set up variables for the actions"
+        variables:
+          # 🟢 Recipients
+          who: "{{ who | default('all') }}"
+
+          # 🟢 Action Identifiers - Unique per notification instance
+          action_confirm: "{{ 'CONFIRM_' ~ context.id }}"
+          action_dismiss: "{{ 'DISMISS_' ~ context.id }}"
+          action_snooze: "{{ 'SNOOZE_' ~ context.id }}"
+          action_confirm_joakim: "{{ 'CONFIRM_JOAKIM_' ~ context.id }}"
+          action_confirm_caroline: "{{ 'CONFIRM_CAROLINE_' ~ context.id }}"
+          action_dismiss_joakim: "{{ 'DISMISS_JOAKIM_' ~ context.id }}"
+          action_dismiss_caroline: "{{ 'DISMISS_CAROLINE_' ~ context.id }}"
+          action_snooze_joakim: "{{ 'SNOOZE_JOAKIM_' ~ context.id }}"
+          action_snooze_caroline: "{{ 'SNOOZE_CAROLINE_' ~ context.id }}"
+
+          # 🟢 Action Enabling Flags - Determine which actions to show
+          show_confirm: "{{ show_confirm | default(false) | string | lower == 'true' }}"
+          show_dismiss: "{{ show_dismiss | default(false) | string | lower == 'true' }}"
+          show_snooze: "{{ show_snooze | default(false) | string | lower == 'true' }}"
+
+          # 🟢 Timeout & Resend Settings
+          timeout_minutes_value: "{{ timeout_minutes_value | default(5) | float }}"
+          enable_timeout: "{{ enable_timeout | default(true) }}"
+          timeout_fallback_action: "{{ timeout_fallback_action | default('script.no_action') }}"
+          timeout_fallback_entity_id: "{{ timeout_fallback_entity_id | default('input_boolean.default') }}"
+          resend_attempts: "{{ resend_attempts | default(0) }}"
+          resend_interval: "{{ resend_interval | default(2) }}"
+
+          # 🟢 Notification Titles & Messages
+          title: "{{ title | default('Title') }}"
+          message: "{{ message | default('Message') }}"
+          action_taken_title: "{{ action_taken_title | default('Action Taken') }}"
+          action_taken_message: "{{ action_taken_message | default('Another user has already taken action.') }}"
+          fallback_action_title: "{{ fallback_action_title | default('Fallback Action Performed') }}"
+          fallback_action_message: "{{ fallback_action_message | default('No response received. Fallback action was performed.') }}"
+
+          # 🟢 Notification Grouping & Actions
+          group: "{{ group | default('actionable_notify') }}"
+          action_confirm_action: "{{ action_confirm_action | default('script.no_action') }}"
+          action_confirm_entity_id: "{{ action_confirm_entity_id | default('input_boolean.default') }}"
+          action_dismiss_action: "{{ action_dismiss_action | default('script.no_action') }}"
+          action_dismiss_entity_id: "{{ action_dismiss_entity_id | default('input_boolean.default') }}"
+          action_snooze_action: "{{ action_snooze_action | default('script.no_action') }}"
+          action_snooze_entity_id: "{{ action_snooze_entity_id | default('input_boolean.default') }}"
+
+          # 🟢 Attachments
+          image: "{{ image | default('') }}"
+          entity_id: "{{ entity_id | default('') }}"
+
+      - alias: "Identify recipients"
+        variables:
+          recipients: >-
+            {% set temp_recipients = [] %}
+            {% if who in ['joakim', 'all'] and states('sensor.notify_joakim') | default('') != '' %}
+              {% set temp_recipients = temp_recipients + [{'name': 'joakim', 'service': states('sensor.notify_joakim')}] %}
+            {% endif %}
+            {% if who in ['caroline', 'all'] and states('sensor.notify_caroline') | default('') != '' %}
+              {% set temp_recipients = temp_recipients + [{'name': 'caroline', 'service': states('sensor.notify_caroline')}] %}
+            {% endif %}
+            {{ temp_recipients | tojson }}
+
+      - alias: "Send notifications with conditional actions"
+        repeat:
+          for_each: "{{ recipients }}"
+          sequence:
+            - service: "{{ repeat.item.service }}"
+              data:
+                title: "{{ title | default('Notification') }}"
+                message: "{{ message | default('You have a new notification.') }}"
+                data:
+                  tag: "{{ group }}"
+                  url: "{{ url | default('') }}"
+                  clickAction: "{{ url | default('') }}"
+                  group: "{{ group }}"
+                  image: "{{ image }}"
+                  entity_id: "{{ entity_id }}"
+                  actions: >-
+                    {% set actions = [] %}
+                    {% if show_confirm %}
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_confirm_joakim, 'title': confirm_text | default('Yes')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_confirm_caroline, 'title': confirm_text | default('Yes')}] %}
+                      {% endif %}
+                    {% endif %}
+                    {% if show_dismiss %}
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_dismiss_joakim, 'title': dismiss_text | default('No')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_dismiss_caroline, 'title': dismiss_text | default('No')}] %}
+                      {% endif %}
+                    {% endif %}
+                    {% if show_snooze %}
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_snooze_joakim, 'title': snooze_text | default('Snooze')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_snooze_caroline, 'title': snooze_text | default('Snooze')}] %}
+                      {% endif %}
+                    {% endif %}
+                    {{ actions }}
+              continue_on_error: true
+
+      - alias: "Wait for a response (or timeout)"
+        wait_for_trigger:
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_confirm_joakim }}"
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_confirm_caroline }}"
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_dismiss_joakim }}"
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_dismiss_caroline }}"
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_snooze_joakim }}"
+          - platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              action: "{{ action_snooze_caroline }}"
+        timeout:
+          minutes: "{{ timeout_minutes_value }}"
+        continue_on_timeout: true
+
+      - alias: "Determine response action and user"
+        variables:
+          full_action: "{{ wait.trigger.event.data.action if wait.trigger is not none else 'none' }}"
+          action_taken: >-
+            {% if 'CONFIRM_' in full_action %}
+              {{ action_confirm }}
+            {% elif 'DISMISS_' in full_action %}
+              {{ action_dismiss }}
+            {% elif 'SNOOZE_' in full_action %}
+              {{ action_snooze }}
+            {% else %}
+              none
+            {% endif %}
+          action_user: >-
+            {% if '_JOAKIM_' in full_action %}
+              joakim
+            {% elif '_CAROLINE_' in full_action %}
+              caroline
+            {% else %}
+              none
+            {% endif %}
+
+      - alias: "Perform action based on response"
+        choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ action_taken == action_confirm }}"
+            sequence:
+              - service: "{{ action_confirm_action }}"
+                target:
+                  entity_id: "{{ action_confirm_entity_id }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action_taken == action_dismiss }}"
+            sequence:
+              - service: "{{ action_dismiss_action }}"
+                target:
+                  entity_id: "{{ action_dismiss_entity_id }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action_taken == action_snooze }}"
+            sequence:
+              - service: "{{ action_snooze_action }}"
+                target:
+                  entity_id: "{{ action_snooze_entity_id }}"
+
+      - alias: "Clear original notifications on timeout"
+        if:
+          - condition: template
+            value_template: "{{ wait.trigger is none }}"
+        then:
+          repeat:
+            for_each: "{{ recipients }}"
+            sequence:
+              - service: "{{ repeat.item.service }}"
+                data:
+                  message: "clear_notification"
+                  data:
+                    tag: "{{ group }}"
+
+      - alias: "Send action taken notification and clear old notifications for other users"
+        if:
+          - condition: template
+            value_template: "{{ wait.trigger is not none }}"
+        then:
+          repeat:
+            for_each: "{{ recipients }}"
+            sequence:
+              - if:
+                  - condition: template
+                    value_template: "{{ repeat.item.name != action_user }}"
+                then:
+                  # Clear original notification for this user
+                  - service: "{{ repeat.item.service }}"
+                    data:
+                      message: "clear_notification"
+                      data:
+                        tag: "{{ group }}"
+
+                  # Only send action taken notification to users who didn't take the action
+                  - delay:
+                      seconds: 1
+                  - service: "{{ repeat.item.service }}"
+                    data:
+                      title: "{{ action_taken_title }}"
+                      message: "{{ action_taken_message }}"
+                      data:
+                        tag: "{{ group }}"
+
+      - alias: "Execute timeout fallback action and notify users"
+        if:
+          - condition: template
+            value_template: "{{ wait.trigger is none }}"
+          - condition: template
+            value_template: "{{ timeout_fallback_action != 'script.no_action' }}"
+        then:
+          # Execute the fallback action
+          - service: "{{ timeout_fallback_action }}"
+            target:
+              entity_id: "{{ timeout_fallback_entity_id }}"
+
+          # Send notification about fallback action to all recipients
+          - repeat:
+              for_each: "{{ recipients }}"
+              sequence:
+                - service: "{{ repeat.item.service }}"
+                  data:
+                    title: "{{ fallback_action_title }}"
+                    message: "{{ fallback_action_message }}"
+                    data:
+                      tag: "{{ group }}_timeout"
+
+      - alias: "Handle resend attempts"
+        if:
+          - condition: template
+            value_template: "{{ wait.trigger is none and resend_attempts > 0 }}"
+        then:
+          - repeat:
+              count: "{{ resend_attempts }}"
+              sequence:
+                - delay:
+                    minutes: "{{ resend_interval }}"
+                - alias: "Resend notifications"
+                  repeat:
+                    for_each: "{{ recipients }}"
+                    sequence:
+                      - service: "{{ repeat.item.service }}"
+                        data:
+                          title: "{{ title | default('Notification') }} (Resend)"
+                          message: "{{ message | default('You have a new notification.') }}"
+                          data:
+                            tag: "{{ group }}_resend_{{ repeat.index }}"
+                            url: "{{ url | default('') }}"
+                            clickAction: "{{ url | default('') }}"
+                            group: "{{ group }}"
+                            actions: >-
+                              {% set actions = [] %}
+                              {% if show_confirm %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_confirm_joakim, 'title': confirm_text | default('Yes')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_confirm_caroline, 'title': confirm_text | default('Yes')}] %}
+                                {% endif %}
+                              {% endif %}
+                              {% if show_dismiss %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_dismiss_joakim, 'title': dismiss_text | default('No')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_dismiss_caroline, 'title': dismiss_text | default('No')}] %}
+                                {% endif %}
+                              {% endif %}
+                              {% if show_snooze %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_snooze_joakim, 'title': snooze_text | default('Snooze')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_snooze_caroline, 'title': snooze_text | default('Snooze')}] %}
+                                {% endif %}
+                              {% endif %}
+                              {{ actions }}
+                        continue_on_error: true
+
+  no_action:
+    alias: "No Action Script"
+    sequence:
+      - delay:
+          seconds: 0
