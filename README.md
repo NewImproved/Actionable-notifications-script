@@ -48,7 +48,7 @@ service: script.actionable_notify
 data:
   who: all
   title: Water Leak Detected!
-  message: "Water leak detected in the basement. Turn off water main?
+  message: Water leak detected in the basement. Turn off water main?
   show_confirm: true
   show_dismiss: true
   confirm_text: Turn Off Water
