@@ -121,7 +121,7 @@ The script supports numerous parameters that let you customize the notification 
 
 * ```group```: Notification group identifier (default: 'actionable_notify')
 * ```image```: URL to an image (optional)
-* ```entity_id```: Entity ID for camera to send stream to notification on iOS
+* ```entity_id```: Entity ID for camera to send stream to notification on iOS (optional)
 
 ## Compatibility
 This script works with the official Home Assistant Companion App for iOS and Android.
