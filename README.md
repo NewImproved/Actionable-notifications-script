@@ -1,4 +1,4 @@
-# Home Assistant Actionable Notifications
+# Home Assistant Actionable Notifications Script
 This script provides a flexible system for sending actionable notifications to users through Home Assistant. It allows you to send customized notifications with interactive buttons that can trigger different actions when pressed.
 ## Features
 
