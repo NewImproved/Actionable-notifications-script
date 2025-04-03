@@ -16,16 +16,8 @@ The script sends mobile notifications with action buttons to selected users. Whe
 If no one responds within the specified timeout period, an optional fallback action can be triggered automatically and original notification is removed, preventing duplicate responses. Notifications can also be resent at specified intervals, if no answer is received.
 ## Setting Up
 
-1. Copy the entire script to your Home Assistant configuration
-2. Add your users to the input_select.notification_users options list
-3. Update the sensor.mobile_device_map template to map users to their mobile devices
-
-## Adding New Users
-To add a new user:
-
-1. Add their username to the options list under input_select.notification_users
-2. Add a mapping for their device in the sensor.mobile_device_map attributes:
-yamlCopyusername: "{{ state_attr('person.username','source').replace('device_tracker.','notify.mobile_app_') }}"
+1. Copy the entire custom_component-folder to your Home Assistant configuration (or however you store your packages) and modify you configuration-file accordingly
+2. Modify users and set up new receptiants as descibed in notify.yaml
 
 
 ## Usage Examples
