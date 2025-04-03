@@ -79,7 +79,7 @@ data:
 The script supports numerous parameters that let you customize the notification experience:
 ### Recipients
 
-* ```who```: Recipient selection - user name or 'all' (default: 'all')
+* ```who```: Recipient selection - configured user name or 'all' (default: 'all')
 
 ### Notification Content
 
