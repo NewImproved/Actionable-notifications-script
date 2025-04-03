@@ -2,14 +2,14 @@
 This script provides a flexible system for sending actionable notifications to users through Home Assistant. It allows you to send customized notifications with interactive buttons that can trigger different actions when pressed.
 ## Features
 
-* **Multiple Recipients:** Send notifications to specific users or everyone at once  
-* **Interactive Buttons:** Add confirm, dismiss, and snooze buttons with custom text  
-* **Automatic Timeout:** Define fallback actions if no one responds in time  
+* **Multiple Recipients:** Send notifications to specific users or everyone at once
+* **Customizable Messages:** Fully customize notification content  
+* **Interactive Buttons:** Add confirm, dismiss, and snooze buttons with custom text
+* **Configurable Actions:** Trigger any Home Assistant service as a response action  
+* **Fallback action:** Define fallback actions if no one responds before timeout  
 * **Resend Capability:** Automatically resend notifications if no response is received  
 * **Action Coordination:** Automatically notify other users when someone takes action  
-* **User-Friendly Setup:** Easy to add new users and devices  
-* **Customizable Messages:** Fully customize notification content and appearance  
-* **Full Home Assistant Integration:** Trigger any Home Assistant service as a response action
+* **Expandable setup:** To add new users and devices, follow instruction in code  
 
 ## How It Works
 The script sends mobile notifications with action buttons to selected users. When a user taps a button, Home Assistant executes the corresponding service call. Other users are notified that action has been taken, preventing duplicate responses.
