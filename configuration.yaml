@@ -1,0 +1,5 @@
+# add following lines to your configuration.yaml to enable provided config files
+
+homeassistant:
+  packages:
+    notify: !include custom_components/notify.yaml
