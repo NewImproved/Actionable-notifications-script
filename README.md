@@ -17,7 +17,7 @@ If no one responds within the specified timeout period, an optional fallback act
 ## Setting Up
 
 1. Copy the entire custom_component-folder to your Home Assistant configuration (or however you store your packages) and modify you configuration-file accordingly
-2. Modify users and set up new receptiants as descibed in notify.yaml
+2. Modify users and set up new recipients as descibed in notify.yaml
 
 
 ## Usage Examples
