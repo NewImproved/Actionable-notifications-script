@@ -1,25 +1,10 @@
 ##############################################################################
-# CONFIGURE USERS
-##############################################################################
-# 
-# SET UP USERS
-# ----------
-# Replace User1 and User2 with the names of the users you want to notify.
-# Ensure that the users (e.g., person.user1, person.user2) are set up in Home Assistant and have mobile app notifications enabled.
-# The notify sensors will be created based on the device trackers of the users.
-#
-# ADD USERS
-# --------
-# To add more users, duplicate sections in code marked with 🐵 and replace User3 with the new user name.
-# Ensure to update the action identifiers and conditions accordingly.
-# 
-##############################################################################
-# INPUTS
+# Actionable Notification Script Inputs
 ##############################################################################
 #
 # RECIPIENTS
 # ----------
-# who: Recipient selection - 'user1', 'user2', or 'all' (default: 'all')
+# who: Recipient selection - 'joakim', 'caroline', or 'all' (default: 'all')
 #
 # NOTIFICATION CONTENT
 # -------------------
@@ -76,58 +61,38 @@
 # Example 1: Basic notification with confirm/dismiss
 # service: script.actionable_notify
 # data:
-#   who: user1
-#   title: Front Door Alert
-#   message: Someone is at the front door. Unlock the door?
-#   show_confirm: true
-#   show_dismiss: true
-#   action_confirm_action: lock.unlock
-#   action_confirm_entity_id: lock.front_door
+#   title: "Front Door Alert"
+#   message: "Someone is at the front door. Unlock the door?"
+#   show_confirm: "true"
+#   show_dismiss: "true"
+#   action_confirm_action: "lock.unlock"
+#   action_confirm_entity_id: "lock.front_door"
 #
 # Example 2: Water leak with timeout fallback action
 # service: script.actionable_notify
 # data:
-#   who: all
-#   title: Water Leak Detected!
-#   message: Water leak detected in the basement. Turn off water main?
-#   show_confirm: true
-#   show_dismiss: true
-#   confirm_text: Turn Off Water
-#   dismiss_text: Ignore
-#   action_confirm_action: switch.turn_on
-#   action_confirm_entity_id: switch.water_shutoff_valve
+#   who: "all"
+#   title: "Water Leak Detected!"
+#   message: "Water leak detected in the basement. Turn off water main?"
+#   show_confirm: "true"
+#   show_dismiss: "true"
+#   confirm_text: "Turn Off Water"
+#   dismiss_text: "Ignore"
+#   action_confirm_action: "switch.turn_on"
+#   action_confirm_entity_id: "switch.water_shutoff_valve"
 #   timeout_minutes_value: 3
-#   timeout_fallback_action: switch.turn_on
-#   timeout_fallback_entity_id: switch.water_shutoff_valve
-#
-# Example 3: Send notification with picture from camera
-# service: script.actionable_notify
-# data:
-#   who: all
-#   title: Camera
-#   message: Movement detected in the living room.
-#   url: /lovelace/Camera
-#   image: /local/tmp/snapshot-camera.jpg
-#   entity_id: camera.tapo_c210_466f_hd_stream
-#   enable_timeout: false
-#   group: camera
-#
+#   timeout_fallback_action: "switch.turn_on"
+#   timeout_fallback_entity_id: "switch.water_shutoff_valve"
 ##############################################################################
 
 template:
   - sensor:
-      - name: "Notify User1"
-        state: "{{ state_attr('person.user1','source').replace('device_tracker.','notify.mobile_app_') }}"
+      - name: "Notify Joakim"
+        state: "{{ state_attr('person.joakim_aven','source').replace('device_tracker.','notify.mobile_app_') }}"
 
   - sensor:
-      - name: "Notify User2"
-        state: "{{ state_attr('person.user2','source').replace('device_tracker.','notify.mobile_app_') }}"
-
-##🐵 REPLACE User3 with new user to add user.
-# - sensor:
-#     - name: "Notify User3"
-#       state: "{{ state_attr('person.user3','source').replace('device_tracker.','notify.mobile_app_') }}"
-#
+      - name: "Notify Caroline"
+        state: "{{ state_attr('person.caroline','source').replace('device_tracker.','notify.mobile_app_') }}"
 
 script:
   actionable_notify:
@@ -143,18 +108,12 @@ script:
           action_confirm: "{{ 'CONFIRM_' ~ context.id }}"
           action_dismiss: "{{ 'DISMISS_' ~ context.id }}"
           action_snooze: "{{ 'SNOOZE_' ~ context.id }}"
-          action_confirm_user1: "{{ 'CONFIRM_USER1_' ~ context.id }}"
-          action_confirm_user2: "{{ 'CONFIRM_USER2_' ~ context.id }}"
-          action_dismiss_user1: "{{ 'DISMISS_USER1_' ~ context.id }}"
-          action_dismiss_user2: "{{ 'DISMISS_USER2_' ~ context.id }}"
-          action_snooze_user1: "{{ 'SNOOZE_USER1_' ~ context.id }}"
-          action_snooze_user2: "{{ 'SNOOZE_USER2_' ~ context.id }}"
-
-##🐵 REPLACE User3 and USER3 with new user to add user.
-#         action_confirm_user3: "{{ 'CONFIRM_USER3_' ~ context.id }}"
-#         action_dismiss_user3: "{{ 'DISMISS_USER3_' ~ context.id }}"
-#         action_snooze_user3: "{{ 'SNOOZE_USER3_' ~ context.id }}"
-#
+          action_confirm_joakim: "{{ 'CONFIRM_JOAKIM_' ~ context.id }}"
+          action_confirm_caroline: "{{ 'CONFIRM_CAROLINE_' ~ context.id }}"
+          action_dismiss_joakim: "{{ 'DISMISS_JOAKIM_' ~ context.id }}"
+          action_dismiss_caroline: "{{ 'DISMISS_CAROLINE_' ~ context.id }}"
+          action_snooze_joakim: "{{ 'SNOOZE_JOAKIM_' ~ context.id }}"
+          action_snooze_caroline: "{{ 'SNOOZE_CAROLINE_' ~ context.id }}"
 
           # 🟢 Action Enabling Flags - Determine which actions to show
           show_confirm: "{{ show_confirm | default(false) | string | lower == 'true' }}"
@@ -194,18 +153,13 @@ script:
         variables:
           recipients: >-
             {% set temp_recipients = [] %}
-            {% if who in ['user1', 'all'] and states('sensor.notify_user1') | default('') != '' %}
-              {% set temp_recipients = temp_recipients + [{'name': 'user1', 'service': states('sensor.notify_user1')}] %}
+            {% if who in ['joakim', 'all'] and states('sensor.notify_joakim') | default('') != '' %}
+              {% set temp_recipients = temp_recipients + [{'name': 'joakim', 'service': states('sensor.notify_joakim')}] %}
             {% endif %}
-            {% if who in ['user2', 'all'] and states('sensor.notify_user2') | default('') != '' %}
-              {% set temp_recipients = temp_recipients + [{'name': 'user2', 'service': states('sensor.notify_user2')}] %}
+            {% if who in ['caroline', 'all'] and states('sensor.notify_caroline') | default('') != '' %}
+              {% set temp_recipients = temp_recipients + [{'name': 'caroline', 'service': states('sensor.notify_caroline')}] %}
             {% endif %}
             {{ temp_recipients | tojson }}
-##🐵 REPLACE User3 with new user and add before {{ temp_recipients | tojson }} to add user.
-#            {% if who in ['user3', 'all'] and states('sensor.notify_user3') | default('') != '' %}
-#              {% set temp_recipients = temp_recipients + [{'name': 'user3', 'service': states('sensor.notify_user3')}] %}
-#            {% endif %}
-#
 
       - alias: "Send notifications with conditional actions"
         repeat:
@@ -225,34 +179,27 @@ script:
                   actions: >-
                     {% set actions = [] %}
                     {% if show_confirm %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_confirm_user1, 'title': confirm_text | default('Yes')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_confirm_user2, 'title': confirm_text | default('Yes')}] %}
-                      {% endif %}                      
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_confirm_joakim, 'title': confirm_text | default('Yes')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_confirm_caroline, 'title': confirm_text | default('Yes')}] %}
+                      {% endif %}
                     {% endif %}
                     {% if show_dismiss %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_dismiss_user1, 'title': dismiss_text | default('No')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_dismiss_user2, 'title': dismiss_text | default('No')}] %}
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_dismiss_joakim, 'title': dismiss_text | default('No')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_dismiss_caroline, 'title': dismiss_text | default('No')}] %}
                       {% endif %}
                     {% endif %}
                     {% if show_snooze %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_snooze_user1, 'title': snooze_text | default('Snooze')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_snooze_user2, 'title': snooze_text | default('Snooze')}] %}
+                      {% if repeat.item.name == 'joakim' %}
+                        {% set actions = actions + [{'action': action_snooze_joakim, 'title': snooze_text | default('Snooze')}] %}
+                      {% elif repeat.item.name == 'caroline' %}
+                        {% set actions = actions + [{'action': action_snooze_caroline, 'title': snooze_text | default('Snooze')}] %}
                       {% endif %}
                     {% endif %}
                     {{ actions }}
-##🐵 REPLACE User3 with new user and add in code in three places above to add user.
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_confirm_user3, 'title': confirm_text | default('Yes')}] %}
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_dismiss_user3, 'title': dismiss_text | default('No')}] %}
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_snooze_user3, 'title': snooze_text | default('Snooze')}] %}
               continue_on_error: true
 
       - alias: "Wait for a response (or timeout)"
@@ -260,44 +207,27 @@ script:
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_confirm_user1 }}"
+              action: "{{ action_confirm_joakim }}"
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_confirm_user2 }}"
+              action: "{{ action_confirm_caroline }}"
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_dismiss_user1 }}"
+              action: "{{ action_dismiss_joakim }}"
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_dismiss_user2 }}"
+              action: "{{ action_dismiss_caroline }}"
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_snooze_user1 }}"
+              action: "{{ action_snooze_joakim }}"
           - platform: event
             event_type: mobile_app_notification_action
             event_data:
-              action: "{{ action_snooze_user2 }}"
-
-##🐵 REPLACE User3 with new user to add user.
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_confirm_user3 }}"
-#
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_dismiss_user3 }}"
-#              
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_snooze_user3 }}"
-#              
+              action: "{{ action_snooze_caroline }}"
         timeout:
           minutes: "{{ timeout_minutes_value }}"
         continue_on_timeout: true
@@ -316,17 +246,14 @@ script:
               none
             {% endif %}
           action_user: >-
-            {% if '_USER1_' in full_action %}
-              user1
-            {% elif '_USER2_' in full_action %}
-              user2
+            {% if '_JOAKIM_' in full_action %}
+              joakim
+            {% elif '_CAROLINE_' in full_action %}
+              caroline
             {% else %}
               none
             {% endif %}
-##🐵 REPLACE User3 and USER3 with new user and add after {% else %} to add user.
-#           {% elif '_USER3_' in full_action %}
-#             user3
-#
+
       - alias: "Perform action based on response"
         choose:
           - conditions:
@@ -443,34 +370,27 @@ script:
                             actions: >-
                               {% set actions = [] %}
                               {% if show_confirm %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_confirm_user1, 'title': confirm_text | default('Yes')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_confirm_user2, 'title': confirm_text | default('Yes')}] %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_confirm_joakim, 'title': confirm_text | default('Yes')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_confirm_caroline, 'title': confirm_text | default('Yes')}] %}
                                 {% endif %}
                               {% endif %}
                               {% if show_dismiss %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_dismiss_user1, 'title': dismiss_text | default('No')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_dismiss_user2, 'title': dismiss_text | default('No')}] %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_dismiss_joakim, 'title': dismiss_text | default('No')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_dismiss_caroline, 'title': dismiss_text | default('No')}] %}
                                 {% endif %}
                               {% endif %}
                               {% if show_snooze %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_snooze_user1, 'title': snooze_text | default('Snooze')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_snooze_user2, 'title': snooze_text | default('Snooze')}] %}
+                                {% if repeat.item.name == 'joakim' %}
+                                  {% set actions = actions + [{'action': action_snooze_joakim, 'title': snooze_text | default('Snooze')}] %}
+                                {% elif repeat.item.name == 'caroline' %}
+                                  {% set actions = actions + [{'action': action_snooze_caroline, 'title': snooze_text | default('Snooze')}] %}
                                 {% endif %}
                               {% endif %}
                               {{ actions }}
-##🐵 REPLACE User3 with new user and add in code in three places above to add user.
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_confirm_user3, 'title': confirm_text | default('Yes')}] %}
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_dismiss_user3, 'title': dismiss_text | default('No')}] %}
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_snooze_user3, 'title': snooze_text | default('Snooze')}] %}
                         continue_on_error: true
 
   no_action:
