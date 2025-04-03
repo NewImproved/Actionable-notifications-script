@@ -61,6 +61,20 @@ data:
   resend_count: 2
   resend_interval: 1
 ```
+ ### Send notification with picture from camera
+ ```python
+ service: script.actionable_notify
+ data:
+   who: all
+   title: Camera
+   message: Movement detected in the living room.
+   url: /lovelace/Camera
+   image: /local/tmp/snapshot-camera.jpg
+   entity_id: camera.tapo_c210_466f_hd_stream
+   enable_timeout: false
+   group: camera
+```
+
 ## Parameters
 The script supports numerous parameters that let you customize the notification experience:
 ### Recipients
