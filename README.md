@@ -53,7 +53,7 @@ data:
   resend_count: 2
   resend_interval: 1
 ```
- ### Send notification with picture from camera
+ ### Send notification with picture and stream from camera
  ```python
  service: script.actionable_notify
  data:
