@@ -68,7 +68,7 @@
 # -----------------------
 # group: Notification group identifier (default: 'actionable_notify')
 # image: URL to an image to include (optional)
-# entity_id: Entity ID to attach to the notification (optional)
+# entity_id: Entity ID for camera to send stream to notification on iOS (optional)
 #
 ##############################################################################
 # USAGE EXAMPLES
