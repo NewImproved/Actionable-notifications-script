@@ -12,7 +12,7 @@ This script provides a flexible system for sending actionable notifications to u
 * **Expandable setup:** To add new users and devices, follow instruction in code  
 
 ## How It Works
-The script sends mobile notifications with action buttons to selected users. When a user taps a button, Home Assistant executes the corresponding service call. The notifications for the other users are replaced by a new notification with information that action has been taken, preventing duplicate responses.  
+The script sends mobile notifications with action buttons (if notification os configured for that) to selected users. When a user taps a button, Home Assistant executes the corresponding service call. The notifications for the other users are replaced by a new notification with information that action has been taken, preventing duplicate responses.  
 If no one responds within the specified timeout period, an optional fallback action can be triggered automatically and original notification is removed, preventing duplicate responses. Notifications can also be resent at specified intervals, if no answer is received.
 ## Setting Up
 
