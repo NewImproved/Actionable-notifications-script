@@ -100,7 +100,7 @@
 #   timeout_fallback_action: switch.turn_on
 #   timeout_fallback_entity_id: switch.water_shutoff_valve
 #
-# Example 3: Send notification with picture from camera
+# Example 3: Send notification with picture and stream from camera
 # service: script.actionable_notify
 # data:
 #   who: all
