@@ -354,7 +354,7 @@ script:
       - alias: "Clear original notifications on timeout"
         if:
           - condition: template
-            value_template: "{{ wait.trigger is none }}"
+            value_template: "{{ enable_timeout is true and wait.trigger is none }}"
         then:
           repeat:
             for_each: "{{ recipients }}"
