@@ -207,271 +207,244 @@ script:
 #            {% endif %}
 #
 
-      - alias: "Send notifications with conditional actions"
+      - alias: "Resend notifications"
         repeat:
-          for_each: "{{ recipients }}"
+          while:
+            - condition: template
+              value_template: "{{ repeat.index - 1 <= resend_attempts }}"
           sequence:
-            - service: "{{ repeat.item.service }}"
-              data:
-                title: "{{ title | default('Notification') }}"
-                message: "{{ message | default('You have a new notification.') }}"
-                data:
-                  tag: "{{ group }}"
-                  url: "{{ url | default('') }}"
-                  clickAction: "{{ url | default('') }}"
-                  group: "{{ group }}"
-                  image: "{{ image }}"
-                  entity_id: "{{ entity_id }}"
-                  actions: >-
-                    {% set actions = [] %}
-                    {% if show_confirm %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_confirm_user1, 'title': confirm_text | default('Yes')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_confirm_user2, 'title': confirm_text | default('Yes')}] %}
-                      {% endif %}                      
-                    {% endif %}
-                    {% if show_dismiss %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_dismiss_user1, 'title': dismiss_text | default('No')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_dismiss_user2, 'title': dismiss_text | default('No')}] %}
-                      {% endif %}
-                    {% endif %}
-                    {% if show_snooze %}
-                      {% if repeat.item.name == 'user1' %}
-                        {% set actions = actions + [{'action': action_snooze_user1, 'title': snooze_text | default('Snooze')}] %}
-                      {% elif repeat.item.name == 'user2' %}
-                        {% set actions = actions + [{'action': action_snooze_user2, 'title': snooze_text | default('Snooze')}] %}
-                      {% endif %}
-                    {% endif %}
-                    {{ actions }}
-##🐵 REPLACE User3 with new user and add in code in three places above to add user.
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_confirm_user3, 'title': confirm_text | default('Yes')}] %}
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_dismiss_user3, 'title': dismiss_text | default('No')}] %}
-#                     {% elif repeat.item.name == 'user3' %}
-#                       {% set actions = actions + [{'action': action_snooze_user3, 'title': snooze_text | default('Snooze')}] %}
-              continue_on_error: true
+            - alias: "set variables"
+              choose:
+                - conditions: "{{ repeat.index == 1}}"
+                  sequence:
+                    variables:
+                      timeout_time: "{{ timeout_minutes_value }}"
+                      resend_sequence: 0
+                      title_to_send: "{{ title | default('Notification') }}"
+                - conditions: "{{ repeat.index > 1}}"
+                  sequence:
+                    variables:
+                      timeout_time: "{{ resend_interval }}"
+                      resend_sequence: "{{ resend_sequence + 1 }}"
+                      title_to_send: "{{ title | default('Notification') }} (Reminder {{ resend_sequence }}/{{ resend_attempts }})"
 
-      - alias: "Wait for a response (or timeout)"
-        wait_for_trigger:
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_confirm_user1 }}"
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_confirm_user2 }}"
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_dismiss_user1 }}"
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_dismiss_user2 }}"
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_snooze_user1 }}"
-          - platform: event
-            event_type: mobile_app_notification_action
-            event_data:
-              action: "{{ action_snooze_user2 }}"
-
-##🐵 REPLACE User3 with new user to add user.
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_confirm_user3 }}"
-#
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_dismiss_user3 }}"
-#              
-#         - platform: event
-#           event_type: mobile_app_notification_action
-#           event_data:
-#             action: "{{ action_snooze_user3 }}"
-#              
-        timeout:
-          minutes: "{{ timeout_minutes_value }}"
-        continue_on_timeout: true
-
-      - alias: "Determine response action and user"
-        variables:
-          full_action: "{{ wait.trigger.event.data.action if wait.trigger is not none else 'none' }}"
-          action_taken: >-
-            {% if 'CONFIRM_' in full_action %}
-              {{ action_confirm }}
-            {% elif 'DISMISS_' in full_action %}
-              {{ action_dismiss }}
-            {% elif 'SNOOZE_' in full_action %}
-              {{ action_snooze }}
-            {% else %}
-              none
-            {% endif %}
-          action_user: >-
-            {% if '_USER1_' in full_action %}
-              user1
-            {% elif '_USER2_' in full_action %}
-              user2
-            {% else %}
-              none
-            {% endif %}
-##🐵 REPLACE User3 and USER3 with new user and add after {% else %} to add user.
-#           {% elif '_USER3_' in full_action %}
-#             user3
-#
-      - alias: "Perform action based on response"
-        choose:
-          - conditions:
-              - condition: template
-                value_template: "{{ action_taken == action_confirm }}"
-            sequence:
-              - service: "{{ action_confirm_action }}"
-                target:
-                  entity_id: "{{ action_confirm_entity_id }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action_taken == action_dismiss }}"
-            sequence:
-              - service: "{{ action_dismiss_action }}"
-                target:
-                  entity_id: "{{ action_dismiss_entity_id }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action_taken == action_snooze }}"
-            sequence:
-              - service: "{{ action_snooze_action }}"
-                target:
-                  entity_id: "{{ action_snooze_entity_id }}"
-
-      - alias: "Clear original notifications on timeout"
-        if:
-          - condition: template
-            value_template: "{{ enable_timeout is true and wait.trigger is none }}"
-        then:
-          repeat:
-            for_each: "{{ recipients }}"
-            sequence:
-              - service: "{{ repeat.item.service }}"
-                data:
-                  message: "clear_notification"
-                  data:
-                    tag: "{{ group }}"
-
-      - alias: "Send action taken notification and clear old notifications for other users"
-        if:
-          - condition: template
-            value_template: "{{ wait.trigger is not none }}"
-        then:
-          repeat:
-            for_each: "{{ recipients }}"
-            sequence:
-              - if:
-                  - condition: template
-                    value_template: "{{ repeat.item.name != action_user }}"
-                then:
-                  # Clear original notification for this user
+            - alias: "Send notifications with conditional actions"
+              repeat:
+                for_each: "{{ recipients }}"
+                sequence:
                   - service: "{{ repeat.item.service }}"
                     data:
-                      message: "clear_notification"
+                      title: "{{ title_to_send }}"
+                      message: "{{ message | default('You have a new notification.') }}"
                       data:
                         tag: "{{ group }}"
-
-                  # Only send action taken notification to users who didn't take the action
-                  - delay:
-                      seconds: 1
-                  - service: "{{ repeat.item.service }}"
-                    data:
-                      title: "{{ action_taken_title }}"
-                      message: "{{ action_taken_message }}"
+                        url: "{{ url | default('') }}"
+                        clickAction: "{{ url | default('') }}"
+                        group: "{{ group }}"
+                        image: "{{ image }}"
+                        entity_id: "{{ entity_id }}"
+                        actions: >-
+                          {% set actions = [] %}
+                          {% if show_confirm %}
+                            {% if repeat.item.name == 'user1' %}
+                              {% set actions = actions + [{'action': action_confirm_user1, 'title': confirm_text | default('Yes')}] %}
+                            {% elif repeat.item.name == 'user2' %}
+                              {% set actions = actions + [{'action': action_confirm_user2, 'title': confirm_text | default('Yes')}] %}
+                            {% endif %}                      
+                          {% endif %}
+                          {% if show_dismiss %}
+                            {% if repeat.item.name == 'user1' %}
+                              {% set actions = actions + [{'action': action_dismiss_user1, 'title': dismiss_text | default('No')}] %}
+                            {% elif repeat.item.name == 'user2' %}
+                              {% set actions = actions + [{'action': action_dismiss_user2, 'title': dismiss_text | default('No')}] %}
+                            {% endif %}
+                          {% endif %}
+                          {% if show_snooze %}
+                            {% if repeat.item.name == 'user1' %}
+                              {% set actions = actions + [{'action': action_snooze_user1, 'title': snooze_text | default('Snooze')}] %}
+                            {% elif repeat.item.name == 'user2' %}
+                              {% set actions = actions + [{'action': action_snooze_user2, 'title': snooze_text | default('Snooze')}] %}
+                            {% endif %}
+                          {% endif %}
+                          {{ actions }}
+      ##🐵 REPLACE User3 with new user and add in code in three places above to add user.
+      #                     {% elif repeat.item.name == 'user3' %}
+      #                       {% set actions = actions + [{'action': action_confirm_user3, 'title': confirm_text | default('Yes')}] %}
+      #                     {% elif repeat.item.name == 'user3' %}
+      #                       {% set actions = actions + [{'action': action_dismiss_user3, 'title': dismiss_text | default('No')}] %}
+      #                     {% elif repeat.item.name == 'user3' %}
+      #                       {% set actions = actions + [{'action': action_snooze_user3, 'title': snooze_text | default('Snooze')}] %}
+                    continue_on_error: true
+      
+            - alias: "Wait for a response (or timeout)"
+              wait_for_trigger:
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_confirm_user1 }}"
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_confirm_user2 }}"
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_dismiss_user1 }}"
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_dismiss_user2 }}"
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_snooze_user1 }}"
+                - platform: event
+                  event_type: mobile_app_notification_action
+                  event_data:
+                    action: "{{ action_snooze_user2 }}"
+      
+      ##🐵 REPLACE User3 with new user to add user.
+      #         - platform: event
+      #           event_type: mobile_app_notification_action
+      #           event_data:
+      #             action: "{{ action_confirm_user3 }}"
+      #
+      #         - platform: event
+      #           event_type: mobile_app_notification_action
+      #           event_data:
+      #             action: "{{ action_dismiss_user3 }}"
+      #              
+      #         - platform: event
+      #           event_type: mobile_app_notification_action
+      #           event_data:
+      #             action: "{{ action_snooze_user3 }}"
+      #              
+      
+              timeout:
+                minutes: "{{ timeout_time }}"
+              continue_on_timeout: true
+      
+            - alias: "Determine response action and user"
+              variables:
+                full_action: "{{ wait.trigger.event.data.action if wait.trigger is not none else 'none' }}"
+                action_taken: >-
+                  {% if 'CONFIRM_' in full_action %}
+                    {{ action_confirm }}
+                  {% elif 'DISMISS_' in full_action %}
+                    {{ action_dismiss }}
+                  {% elif 'SNOOZE_' in full_action %}
+                    {{ action_snooze }}
+                  {% else %}
+                    none
+                  {% endif %}
+                action_user: >-
+                  {% if '_USER1_' in full_action %}
+                    user1
+                  {% elif '_USER2_' in full_action %}
+                    user2
+                  {% else %}
+                    none
+                  {% endif %}
+      ##🐵 REPLACE User3 and USER3 with new user and add after {% else %} to add user.
+      #           {% elif '_USER3_' in full_action %}
+      #             user3
+      #
+            - alias: "Perform action based on response"
+              choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ action_taken == action_confirm }}"
+                  sequence:
+                    - service: "{{ action_confirm_action }}"
+                      target:
+                        entity_id: "{{ action_confirm_entity_id }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ action_taken == action_dismiss }}"
+                  sequence:
+                    - service: "{{ action_dismiss_action }}"
+                      target:
+                        entity_id: "{{ action_dismiss_entity_id }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ action_taken == action_snooze }}"
+                  sequence:
+                    - service: "{{ action_snooze_action }}"
+                      target:
+                        entity_id: "{{ action_snooze_entity_id }}"
+      
+            - alias: "Clear original notifications on timeout"
+              if:
+                - condition: template
+                  value_template: "{{ enable_timeout is true and wait.trigger is none }}"
+              then:
+                repeat:
+                  for_each: "{{ recipients }}"
+                  sequence:
+                    - service: "{{ repeat.item.service }}"
                       data:
-                        tag: "{{ group }}"
-
-      - alias: "Execute timeout fallback action and notify users"
-        if:
-          - condition: template
-            value_template: "{{ wait.trigger is none }}"
-          - condition: template
-            value_template: "{{ timeout_fallback_action != 'script.no_action' }}"
-        then:
-          # Execute the fallback action
-          - service: "{{ timeout_fallback_action }}"
-            target:
-              entity_id: "{{ timeout_fallback_entity_id }}"
-
-          # Send notification about fallback action to all recipients
-          - repeat:
-              for_each: "{{ recipients }}"
-              sequence:
-                - service: "{{ repeat.item.service }}"
-                  data:
-                    title: "{{ fallback_action_title }}"
-                    message: "{{ fallback_action_message }}"
-                    data:
-                      tag: "{{ group }}_timeout"
-
-      - alias: "Handle resend attempts"
-        if:
-          - condition: template
-            value_template: "{{ wait.trigger is none and resend_attempts > 0 }}"
-        then:
-          - repeat:
-              count: "{{ resend_attempts }}"
-              sequence:
-                - delay:
-                    minutes: "{{ resend_interval }}"
-                - alias: "Resend notifications"
-                  repeat:
+                        message: "clear_notification"
+                        data:
+                          tag: "{{ group }}"
+      
+            - alias: "Send action taken notification and clear old notifications for other users"
+              if:
+                - condition: template
+                  value_template: "{{ wait.trigger is not none }}"
+              then:
+                repeat:
+                  for_each: "{{ recipients }}"
+                  sequence:
+                    - if:
+                        - condition: template
+                          value_template: "{{ repeat.item.name != action_user }}"
+                      then:
+                        # Clear original notification for this user
+                        - service: "{{ repeat.item.service }}"
+                          data:
+                            message: "clear_notification"
+                            data:
+                              tag: "{{ group }}"
+      
+                        # Only send action taken notification to users who didn't take the action
+                        - delay:
+                            seconds: 1
+                        - service: "{{ repeat.item.service }}"
+                          data:
+                            title: "{{ action_taken_title }}"
+                            message: "{{ action_taken_message }}"
+                            data:
+                              tag: "{{ group }}"
+      
+            - alias: "Execute timeout fallback action and notify users"
+              if:
+                - condition: template
+                  value_template: "{{ wait.trigger is none }}"
+                - condition: template
+                  value_template: "{{ timeout_fallback_action != 'script.no_action' }}"
+              then:
+                # Execute the fallback action
+                - service: "{{ timeout_fallback_action }}"
+                  target:
+                    entity_id: "{{ timeout_fallback_entity_id }}"
+      
+                # Send notification about fallback action to all recipients
+                - repeat:
                     for_each: "{{ recipients }}"
                     sequence:
                       - service: "{{ repeat.item.service }}"
                         data:
-                          title: "{{ title | default('Notification') }} (Resend)"
-                          message: "{{ message | default('You have a new notification.') }}"
+                          title: "{{ fallback_action_title }}"
+                          message: "{{ fallback_action_message }}"
                           data:
-                            tag: "{{ group }}_resend_{{ repeat.index }}"
-                            url: "{{ url | default('') }}"
-                            clickAction: "{{ url | default('') }}"
-                            group: "{{ group }}"
-                            actions: >-
-                              {% set actions = [] %}
-                              {% if show_confirm %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_confirm_user1, 'title': confirm_text | default('Yes')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_confirm_user2, 'title': confirm_text | default('Yes')}] %}
-                                {% endif %}
-                              {% endif %}
-                              {% if show_dismiss %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_dismiss_user1, 'title': dismiss_text | default('No')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_dismiss_user2, 'title': dismiss_text | default('No')}] %}
-                                {% endif %}
-                              {% endif %}
-                              {% if show_snooze %}
-                                {% if repeat.item.name == 'user1' %}
-                                  {% set actions = actions + [{'action': action_snooze_user1, 'title': snooze_text | default('Snooze')}] %}
-                                {% elif repeat.item.name == 'user2' %}
-                                  {% set actions = actions + [{'action': action_snooze_user2, 'title': snooze_text | default('Snooze')}] %}
-                                {% endif %}
-                              {% endif %}
-                              {{ actions }}
-##🐵 REPLACE User3 with new user and add in code in three places above to add user.
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_confirm_user3, 'title': confirm_text | default('Yes')}] %}
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_dismiss_user3, 'title': dismiss_text | default('No')}] %}
-#                               {% elif repeat.item.name == 'user3' %}
-#                                 {% set actions = actions + [{'action': action_snooze_user3, 'title': snooze_text | default('Snooze')}] %}
-                        continue_on_error: true
+                            tag: "{{ group }}"
+                            
+            - alias: "Stop script at response"
+              if:
+                - condition: template
+                  value_template: "{{ wait.trigger is not none }}"
+              then:
+                - stop: "Script ended, response recieved"
 
   no_action:
     alias: "No Action Script"
