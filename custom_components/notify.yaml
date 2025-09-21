@@ -355,21 +355,21 @@ script:
                     - condition: template
                       value_template: "{{ action_taken == action_confirm }}"
                   sequence:
-                    - service: "{{ action_confirm_action }}"
+                    - action: "{{ action_confirm_action }}"
                       target:
                         entity_id: "{{ action_confirm_entity_id }}"
                 - conditions:
                     - condition: template
                       value_template: "{{ action_taken == action_dismiss }}"
                   sequence:
-                    - service: "{{ action_dismiss_action }}"
+                    - action: "{{ action_dismiss_action }}"
                       target:
                         entity_id: "{{ action_dismiss_entity_id }}"
                 - conditions:
                     - condition: template
                       value_template: "{{ action_taken == action_snooze }}"
                   sequence:
-                    - service: "{{ action_snooze_action }}"
+                    - action: "{{ action_snooze_action }}"
                       target:
                         entity_id: "{{ action_snooze_entity_id }}"
       
