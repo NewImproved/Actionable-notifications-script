@@ -422,6 +422,8 @@ script:
                   value_template: "{{ wait.trigger is none }}"
                 - condition: template
                   value_template: "{{ repeat.index >= resend_attempts }}"
+                - condition: template
+                  value_template: "{{ enable_timeout is true }}"
               then:
                 # Execute the fallback action
                 - action: "{{ timeout_fallback_action }}"
