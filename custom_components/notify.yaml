@@ -421,10 +421,10 @@ script:
                 - condition: template
                   value_template: "{{ wait.trigger is none }}"
                 - condition: template
-                  value_template: "{{ timeout_fallback_action != 'script.no_action' }}"
+                  value_template: "{{ repeat.index == resend_attempts }}"
               then:
                 # Execute the fallback action
-                - service: "{{ timeout_fallback_action }}"
+                - action: "{{ timeout_fallback_action }}"
                   target:
                     entity_id: "{{ timeout_fallback_entity_id }}"
       
