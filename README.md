@@ -99,7 +99,7 @@ The script supports numerous parameters that let you customize the notification 
 
 ### Timeout Settings
 
-* ```timeout_minutes```: Minutes to wait for response (default: 5)
+* ```timeout_minutes```: Minutes to wait for response (default: 300)
 * ```enable_timeout```: Enable timeout - 'true' or 'false' (default: true)
 * ```timeout_action```: Service to call on timeout
 * ```timeout_entity_id```: Entity ID for timeout action
