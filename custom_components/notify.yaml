@@ -47,7 +47,7 @@
 #
 # TIMEOUT SETTINGS
 # --------------
-# timeout_minutes_value: Number of minutes to wait for a response (default: 5)
+# timeout_minutes_value: Number of minutes to wait for a response (default: 300)
 # enable_timeout: Enable timeout functionality - 'true' or 'false' (default: true)
 # timeout_fallback_action: Service to call on timeout (default: 'script.no_action')
 # timeout_fallback_entity_id: Entity ID to target for timeout action (default: 'input_boolean.default')
@@ -162,7 +162,7 @@ script:
           show_snooze: "{{ show_snooze | default(false) | string | lower == 'true' }}"
 
           # 🟢 Timeout & Resend Settings
-          timeout_minutes_value: "{{ timeout_minutes_value | default(5) | float }}"
+          timeout_minutes_value: "{{ timeout_minutes_value | default(300) | float }}"
           enable_timeout: "{{ enable_timeout | default(true) }}"
           timeout_fallback_action: "{{ timeout_fallback_action | default('script.no_action') }}"
           timeout_fallback_entity_id: "{{ timeout_fallback_entity_id | default('input_boolean.default') }}"
